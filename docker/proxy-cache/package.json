@@ -1,0 +1,32 @@
+{
+  "name": "proxy-cache",
+  "version": "1.0.0",
+  "description": "Ad-hoc proxy cache for WordPress with Redis and node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx mocha"
+  },
+  "keywords": [
+    "cache",
+    "proxy",
+    "wordpress",
+    "redis"
+  ],
+  "author": "EPFL IDEV-FSD <personnel.idev-fsd@epfl.ch>",
+  "license": "MIT",
+  "dependencies": {
+    "bl": "^2.1.2",
+    "bson": "^3.0.2",
+    "express": "^4.16.4",
+    "http-cache-semantics": "^4.0.0",
+    "http-proxy": "^1.17.0",
+    "ioredis": "^4.2.0",
+    "lodash": "^4.17.11",
+    "when": "^3.7.8"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-string": "^1.5.0",
+    "mocha": "^5.2.0"
+  }
+}
