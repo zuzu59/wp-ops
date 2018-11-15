@@ -8,8 +8,10 @@ const chai = require('chai'),
 chai.use(chaiHttp);
 
 module.exports.get = function(/* url, ...   */) {
- let req = chai.request({address() { return "zombo.com"}})
- return req.get.apply(req, arguments);
+    let req = chai.request({address() { return "zombo.com"}}),
+        retval = req.get.apply(req, arguments);
+    retval.socket = {};
+    return retval;
 }
 
 /**

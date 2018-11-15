@@ -1,7 +1,9 @@
 'use strict';
 
 const BufferList = require('bl'),
-      http = require('http');
+      http = require('http'),
+      when = require('when'),
+      events = require('events');
 
 /**
  * A document served either out of the origin server, the filesystem,
@@ -52,7 +54,7 @@ Document.coerce = function(what) {
 }
 
 /**
- * A Document that also looks like an @link http.ServerResponse
+ * A Document that is also an @link http.ServerResponse
  *
  * Used to intercept responses served by the `http-proxy` NPM module
  * so as to further process them (e.g. cache them)
@@ -60,8 +62,32 @@ Document.coerce = function(what) {
  * @constructor
  */
 Document.Duplex = function() {
-    
-    let doc = new Document();
-    this.XXX;
-};
+    let doc = new Document(),
+        e = new events.EventEmitter(),
+        deferred = when.defer(),
+        headers = {},
+        headersSent = false;
 
+    return {
+        promise: deferred.promise,
+        setHeader(header, value) {
+            console.log('setHeader(' + header + ', ' + value + ')');
+            doc.headers[header.toLowerCase()] = value
+        },
+        writeHead(statusCode, headers) {
+            doc.statusCode = statusCode;
+            for (header in headers) {
+                doc.setHeader(header, headers[header]);
+            }
+            headersSent = true
+        },
+        headersSent: () => headersSent,
+        write() {
+            console.log('duplex write');
+        },
+        end() {
+            console.log('duplex end');
+            deferred.resolve(doc)
+        }
+    }
+};
