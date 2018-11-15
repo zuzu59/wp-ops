@@ -6,6 +6,8 @@ const chai = require('chai'),
       buildAProxy = require('../lib/proxy-request-adapter.js'),
       MockRequest = require('./lib/mock-request.js').MockRequest;
 
+require("long-stack-traces");
+
 chai.should();
 
 describe('Origin server: unit tests', function() {
