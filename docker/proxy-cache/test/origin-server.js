@@ -4,7 +4,7 @@ const chai = require('chai'),
       Document = require('../lib/document.js'),
       assert = require('assert'),
       buildAProxy = require('../lib/proxy-request-adapter.js'),
-      MockRequest = require('./lib/mock-request.js').MockRequest;
+      MockProxy = require('./lib/mock-proxy.js');
 
 require("long-stack-traces");
 
@@ -14,10 +14,10 @@ describe('Origin server: unit tests', function() {
     let mockConfig = {}
 
     it('forwards a GET with success', async function() {
-        let mr = new MockRequest()
+        let mp = new MockProxy()
 
-        let server = new OriginServer(mockConfig, mr.request),
-            req = mr.getOK
+        let server = new OriginServer(mockConfig, mp.request),
+            req = mp.getOK
 
         let response = await(server.forward(req));
         assert.equal(response.statusCode, 200);
@@ -25,10 +25,10 @@ describe('Origin server: unit tests', function() {
     });
 
     it('forwards a GET with error', async function() {
-        let mr = new MockRequest();
+        let mp = new MockProxy();
 
-        let server = new OriginServer(mockConfig, mr.request),
-            req = mr.getFailing
+        let server = new OriginServer(mockConfig, mp.request),
+            req = mp.getFailing
 
         let response = await(server.forward(req));
         assert.equal(response.statusCode, 500);
