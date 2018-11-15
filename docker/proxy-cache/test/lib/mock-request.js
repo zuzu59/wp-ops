@@ -1,17 +1,28 @@
 'use strict'
 
+const process = require('process')
+
 /**
- * Mock out the "req" objects that get passed around a lot
+ * Mock out the "req" objects that get passed around
  */
 
-const chai = require('chai'),
-      chaiHttp = require('chai-http');
-
-chai.use(chaiHttp);
-
-module.exports.get = function(/* url, ...   */) {
-    let req = chai.request('http://localhost:8085'),
-        retval = req.get.apply(req, arguments);
-    retval.socket = {};
-    return retval;
+module.exports.get = function(url) {
+    return {
+        method: 'GET',
+        httpVersion: '1.1',
+        headers: {
+                host: 'example.com',
+        },
+        url,
+        connection: {},
+        socket: {},
+        on(event) {console.log('on(' + event + ')')},
+        pipe(what) {
+            process.nextTick(() => {
+                // Mock GET requests (and GET requests in general)
+                // never have a request body.
+                what.end();
+            })
+        }
+    }
 }
