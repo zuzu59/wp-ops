@@ -7,19 +7,20 @@ module.exports = MockServer;
 function MockServer() {
     app = express();
 
-    function defineRequest (url, servingFn){
+    function defineRequest(url, servingFn) {
         app.get(url, servingFn);
-        return function() {
+        return function () {
             return mockRequest.get(url);
         }
     }
+
     this.okRequest = defineRequest('/OK', (req, res) => res.send('Hello World!'))
-    this.failingRequest = defineRequest('/error', (req, res, next) => next())
+    this.failingRequest = defineRequest('/error', (req, res, next) => next('ERROR'))
 
     let started = when.defer();
     let listener;
 
-    this.start = function() {
+    this.start = function () {
         started = when.defer();
 
         listener = app.listen(0, (err) => {
@@ -35,8 +36,7 @@ function MockServer() {
         return started.promise;
     }
 
-    this.stop = function() {
+    this.stop = function () {
         listener.close();
     }
-
 }

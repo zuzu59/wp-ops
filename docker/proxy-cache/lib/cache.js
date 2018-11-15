@@ -41,7 +41,9 @@ Cache.prototype.read = async function(req, opts) {
         let { policy, body } = this.serialize.deserialize(payloadText);
         policy = CachePolicy.fromObject(policy);
         if (policy.satisfiesWithoutRevalidation(req) || force) {
-            return new Document(policy.responseHeaders(), new BufferList(body));
+            return new Document(200,
+                                policy.responseHeaders(),
+                                new BufferList(body));
         }
         // Note: we never expire cache entries - We only replace them
         // with new pages out of the origin server.

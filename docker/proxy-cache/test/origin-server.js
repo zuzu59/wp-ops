@@ -6,7 +6,7 @@ const chai = require('chai'),
       buildAProxy = require('../lib/proxy-request-adapter.js'),
       MockProxy = require('./lib/mock-proxy.js');
 
-require("long-stack-traces");
+// require("long-stack-traces");
 
 chai.should();
 
@@ -70,7 +70,6 @@ describe('Origin server: integration with http-proxy', function() {
         let response = await(server.forward(req));
         assert(response instanceof Document);
         assert.equal(response.statusCode, 500);
-        
     });
 
     after(function() {

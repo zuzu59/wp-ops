@@ -25,8 +25,9 @@ module.exports = Document;
  * @param {Object} headers
  * @param {Stream.Readable} body
  */
-function Document(headers, body) {
+function Document(statusCode, headers, body) {
     this.headers = headers;
+    this.statusCode = statusCode;
     this._lc_headers = {};
     for (var h in headers) {
         this._lc_headers[h.toLowerCase()] = headers[h];
@@ -55,42 +56,4 @@ Document.coerce = function(what) {
     }
 }
 
-/**
- * A Document that is also an @link http.ServerResponse
- *
- * Used to intercept responses served by the `http-proxy` NPM module
- * so as to further process them (e.g. cache them)
- *
- * @constructor
- */
-Document.Duplex = function() {
-    let doc = new Document(),
-        e = new events.EventEmitter(),
-        deferred = when.defer(),
-        headers = {},
-        headersSent = false;
-
-    return {
-        promise: deferred.promise,
-        setHeader(header, value) {
-            console.log('setHeader(' + header + ', ' + value + ')');
-            doc.headers[header.toLowerCase()] = value
-        },
-        writeHead(statusCode, headers) {
-            doc.statusCode = statusCode;
-            for (header in headers) {
-                doc.setHeader(header, headers[header]);
-            }
-            headersSent = true
-        },
-        headersSent: () => headersSent,
-        write() {
-            console.log('duplex write');
-        },
-        end() {
-            console.log('duplex end');
-            deferred.resolve(doc)
-        }
-    }
-};
 util.inherits(Document, events.EventEmitter)
