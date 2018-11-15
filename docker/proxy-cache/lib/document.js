@@ -3,7 +3,8 @@
 const BufferList = require('bl'),
       http = require('http'),
       when = require('when'),
-      events = require('events');
+      events = require('events'),
+      util = require('util');
 
 /**
  * A document served either out of the origin server, the filesystem,
@@ -38,15 +39,16 @@ Document.prototype.getHeader = function(h) {
 }
 
 /**
- * @returns True iff `what` works like a Document
+ * Override for the "instanceof" operator with Document
  */
-Document.isA = function(what) {
-    return (what instanceof Document ||
-            'headers' in what);
-}
+// Class-less example syntax found here:
+// https://github.com/babel/babel/issues/2286#issuecomment-136131040
+Object.defineProperty(Document, Symbol.hasInstance,
+                      { value: (what) => (('headers' in what) &&
+                                          ('on' in what)) })
 
 Document.coerce = function(what) {
-    if (Document.isA(what)) {
+    if (what instanceof Document) {
         return what
     } else {
         throw new Error("I don't know how to cast " + what + " into a Document")
@@ -91,3 +93,4 @@ Document.Duplex = function() {
         }
     }
 };
+util.inherits(Document, events.EventEmitter)

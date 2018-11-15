@@ -22,7 +22,7 @@ Response.wrap = function(res) {
 function serveIdiomatic (/* Response | ([statusCode], [headers], [bodyOrException]) */) {
     let res = this;
 
-    if (Document.isA(arguments[0])) {
+    if (arguments[0] instanceof Document) {
         return serveDocument(res, arguments[0]);
     }
 

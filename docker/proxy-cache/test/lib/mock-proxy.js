@@ -13,7 +13,7 @@ function MockProxy() {
     let getOK      = this.getOK = { url: '/OK' }
     let getFailing = this.getFailing = { url: '/failing' }
     this.request = function(req) {
-        let res = { headers: {'content-type': 'text/html'} }
+        let res = { headers: {'content-type': 'text/html'}, on() {} }
         if (req === getOK) {
             res.statusCode = 200
         } else if (req === getFailing) {

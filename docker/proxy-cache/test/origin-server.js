@@ -21,7 +21,7 @@ describe('Origin server: unit tests', function() {
 
         let response = await(server.forward(req));
         assert.equal(response.statusCode, 200);
-        assert(Document.isA(response));
+        assert(response instanceof Document);
     });
 
     it('forwards a GET with error', async function() {
@@ -32,7 +32,7 @@ describe('Origin server: unit tests', function() {
 
         let response = await(server.forward(req));
         assert.equal(response.statusCode, 500);
-        assert(Document.isA(response));
+        assert(response instanceof Document);
     });
 });
 
@@ -55,7 +55,7 @@ describe('Origin server: integration with http-proxy', function() {
         
         let req = mockServer.okRequest()
         let response = await(server.forward(req));
-        assert(Document.isA(response));
+        assert(response instanceof Document);
         assert.equal(response.statusCode, 200);
     });
 
@@ -68,7 +68,7 @@ describe('Origin server: integration with http-proxy', function() {
         
         let req = mockServer.failingRequest()
         let response = await(server.forward(req));
-        assert(Document.isA(response));
+        assert(response instanceof Document);
         assert.equal(response.statusCode, 500);
         
     });
