@@ -17,9 +17,3 @@ function OriginServer(config, request) {
         return request(req).then((res) => Document.coerce(res))
     }
 }
-
-/**
- * @return { Document }
- */
-function forward(req) {
-}

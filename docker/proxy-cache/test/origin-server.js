@@ -1,5 +1,4 @@
 const chai = require('chai'),
-      expect = chai.expect,
       MockServer = require('./lib/mock-server.js'),
       OriginServer = require('../lib/origin-server.js'),
       Document = require('../lib/document.js'),
