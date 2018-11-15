@@ -1,6 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
+const util = require('util'),
       ResponseBase = require('http').ServerResponse,
       Document = require('./document');
 
@@ -11,7 +11,7 @@ module.exports =
 function Response() {
 };
 
-Response.prototype = _.create(ResponseBase.prototype);
+util.inherits(Response, ResponseBase);
 
 Response.wrap = function(res) {
     let that = Object.create(Response, res);

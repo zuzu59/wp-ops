@@ -1,6 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
+const util = require('util'),
       RequestBase = require('http').ClientRequest;
 
 module.exports =
@@ -11,7 +11,7 @@ module.exports =
 function Request() {
 };
 
-Request.prototype = _.create(RequestBase.prototype);
+util.inherits(Request, RequestBase);
 
 Request.wrap = function(req) {
     that = Object.create(Request, res);
