@@ -4,8 +4,9 @@ const http = require('http'),
       _ = require('lodash'),
       when = require('when'),
       defaultConfig = require('../default-config'),
-      Response = require('./request'),
+      Request = require('./request'),
       Response = require('./response'),
+      httpProxy = require('http-proxy'),
       World = require('./world');
 
 var currentlyTimed = false;
@@ -18,24 +19,43 @@ module.exports =
 function Proxy (config) {
     config = makeConfig(config);
 
-    const world = new World(this, config);
+    let proxy = httpProxy.createProxyServer(
+        { target: {
+            host: config.wordpress.host,
+            port: config.wordpress.port
+        } })
+    // Provide proxy.request as a request-like for originServer:
+    proxy.request = async function(req) {
+        let defer = when.deferred()
+        someKindOfRes = {
+            serve: function(header, body) {
+                defer.resolve(XXX)
+            }
+        }
+        proxy.web(req, someKindOfRes)
+        return deferred.promise
+    }
+
+    const world = new World(proxy, config)
+
 
     server = http.createServer(async function(req, res) {
-        
-        // XXX Need to delegate to proxy for everything except
-        // GET requests
-        try {
-            await config.serve.call(config, Request.wrap(req),
-                                     Response.wrap(res), world)
-                .timeout(config.deadline.hard);
-            world.change(true);
-        } catch (e) {
-            if (e instanceof when.TimeoutError) {
-                res.serve(503);
-            } else {
-                res.serve(500, e);
+        if (isCacheable(req)) {
+            try {
+                let doc = await config.serve.call(config, Request.wrap(req), world)
+                    .timeout(config.deadline.hard);
+                world.change(true);
+                res.serve(doc)
+            } catch (e) {
+                if (e instanceof when.TimeoutError) {
+                    res.serve(503);
+                } else {
+                    res.serve(500, e);
+                }
+                world.change(e);
             }
-            world.change(e);
+        } else {
+            proxy.web(req, res, { target: 'http://mytarget.com:8080' });
         }
     });
 

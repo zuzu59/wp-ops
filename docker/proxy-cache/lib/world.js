@@ -10,7 +10,7 @@ const Wordpress = require('./wordpress'),
  */
 function World(proxy, config) {
     this.wordpress = new Wordpress(config.wordpress.servingPath);
-    this.originServer = new OriginServer(config.wordpress);
+    this.originServer = new OriginServer(config.wordpress, proxy.request);
     this.cache = new Cache(config);
 }
 
