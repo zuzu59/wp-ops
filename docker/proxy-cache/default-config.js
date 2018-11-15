@@ -28,7 +28,7 @@ exports.deadline.hard = 120 * 1000;
  *
  * @return { Document | Error }
  */
-exports.serve = async function(req, world) {
+exports.serve = async function(req, world) {  
     let { wordpress, cache, originServer } = world;
 
     const onDiskAsset = await wordpress.find(req);  // Fast - Filesystem-based

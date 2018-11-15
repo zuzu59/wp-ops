@@ -1,15 +1,20 @@
 'use strict';
 
+const httpProxy = require('http-proxy'),
+    Document = require('./document.js');
+
+module.exports = OriginServer;
+
 /**
  * @constructor
  */
 
 function OriginServer(config) {
     const proxy = httpProxy.createProxyServer(
-        target: {
+        { target: {
             host: config.host,
             port: config.port
-        });
+        } })
 
     /**
      * @return { Promise(Document) }
@@ -25,4 +30,5 @@ function OriginServer(config) {
  * @return { Document }
  */
 function forward(proxy, req) {
+
 }

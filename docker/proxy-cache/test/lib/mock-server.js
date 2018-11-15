@@ -1,19 +1,28 @@
 const express = require('express'),
-      when = require('when');
+      when = require('when'),
+      mockRequest = require('./mock-request');
 
 module.exports = MockServer;
 
-function MockServer () {
+function MockServer() {
     app = express();
-    app.get('/OK', (req, res) => res.send('Hello World!'));
-    app.get('/error', (req, res, next) => next());
 
-    let started = when.defer()
+    function defineRequest (url, servingFn){
+        app.get(url, servingFn);
+        return function() {
+            return mockRequest.get(url);
+        }
+    }
+    this.okRequest = defineRequest('/OK', (req, res) => res.send('Hello World!'))
+    this.failingRequest = defineRequest('/error', (req, res, next) => next())
+
+    let started = when.defer();
+    let listener;
 
     this.start = function() {
         started = when.defer();
 
-        let listener = app.listen(0, (err) => {
+        listener = app.listen(0, (err) => {
             if (err) {
                 started.reject
             } else {
@@ -26,5 +35,8 @@ function MockServer () {
         return started.promise;
     }
 
-}
+    this.stop = function() {
+        listener.close();
+    }
 
+}
