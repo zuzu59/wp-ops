@@ -40,7 +40,15 @@ Document.prototype.getHeader = function(h) {
  */
 Document.isA = function(what) {
     return (what instanceof Document ||
-            what instanceof http.IncomingMessage);
+            'headers' in what);
+}
+
+Document.coerce = function(what) {
+    if (Document.isA(what)) {
+        return what
+    } else {
+        throw new Error("I don't know how to cast " + what + " into a Document")
+    }
 }
 
 /**
