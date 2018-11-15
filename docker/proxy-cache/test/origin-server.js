@@ -3,6 +3,7 @@ const chai = require('chai'),
       OriginServer = require('../lib/origin-server.js'),
       Document = require('../lib/document.js'),
       assert = require('assert'),
+      buildAProxy = require('../lib/proxy-request-adapter.js'),
       MockRequest = require('./lib/mock-request.js').MockRequest;
 
 chai.should();
@@ -34,11 +35,12 @@ describe('Origin server: unit tests', function() {
 });
 
 describe('Origin server: integration with http-proxy', function() {
-    let mockServer;
+    let mockServer, proxy;
 
     before(async function() {
         mockServer = new MockServer();
         await mockServer.start();
+        proxy = buildAProxy('localhost', mockServer.port);
     });
 
 
@@ -47,9 +49,8 @@ describe('Origin server: integration with http-proxy', function() {
             host: mockServer.host,
             port: mockServer.port,
         };
-        let server = new OriginServer(config);
+        let server = new OriginServer(config, proxy.request);
         
-        // TODO Mock req
         let req = mockServer.okRequest()
         let response = await(server.forward(req));
         assert(Document.isA(response));
@@ -61,9 +62,8 @@ describe('Origin server: integration with http-proxy', function() {
             host: mockServer.host,
             port: mockServer.port,
         };
-        let server = new OriginServer(config);
+        let server = new OriginServer(config, proxy.request);
         
-        // TODO Mock req
         let req = mockServer.failingRequest()
         let response = await(server.forward(req));
         assert(Document.isA(response));

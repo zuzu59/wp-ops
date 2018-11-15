@@ -6,7 +6,7 @@ const http = require('http'),
       defaultConfig = require('../default-config'),
       Request = require('./request'),
       Response = require('./response'),
-      httpProxy = require('http-proxy'),
+      buildAProxy = require('./proxy-request-adapter.js'),
       World = require('./world');
 
 var currentlyTimed = false;
@@ -19,25 +19,11 @@ module.exports =
 function Proxy (config) {
     config = makeConfig(config);
 
-    let proxy = httpProxy.createProxyServer(
-        { target: {
-            host: config.wordpress.host,
-            port: config.wordpress.port
-        } })
-    // Provide proxy.request as a request-like for originServer:
-    proxy.request = async function(req) {
-        let defer = when.deferred()
-        someKindOfRes = {
-            serve: function(header, body) {
-                defer.resolve(XXX)
-            }
-        }
-        proxy.web(req, someKindOfRes)
-        return deferred.promise
-    }
-
-    const world = new World(proxy, config)
-
+    const proxy = buildAProxy({target: {
+        host: config.wordpress.host,
+        port: config.wordpress.port
+    }}),
+          world = new World(proxy, config)
 
     server = http.createServer(async function(req, res) {
         if (isCacheable(req)) {
