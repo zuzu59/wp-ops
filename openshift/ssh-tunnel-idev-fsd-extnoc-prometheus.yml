@@ -1,0 +1,121 @@
+# A very basic, yet full-fledged service running on OpenShift:
+# an ssh tunnel that lets the camptocamp Prometheus scrape the
+# one on the idev-fsd-extnoc virtual machine.
+#
+# To create the objects in this file the first time around, say
+#
+#   oc create -f - < ssh-tunnel-idev-fsd-extnoc-prometheus.yml
+#
+# Once they are created, you can edit them interactively like this for
+# instance,
+#
+#   oc edit -n wwp-test ssh-tunnel-config-idev-fsd-extnoc-prometheus
+#
+# or edit this file and reload all the objects in one fell swoop:
+#
+#   oc replace -f - < ssh-tunnel-idev-fsd-extnoc-prometheus.yml
+#
+# And if you want to get rid of it all and start over:
+#
+#   oc delete -f - < ssh-tunnel-idev-fsd-extnoc-prometheus.yml
+
+# Let us start with a ConfigMap. This is a proto-configuration file
+# that lives in etcd. You can edit it with
+#
+#   oc edit -n wwp-test ssh-tunnel-config-idev-fsd-extnoc-prometheus
+#
+# After you save your changes, the files under "data" are instantly
+# rewritten in all pods that use this configMap (such as the ones from
+# the DeploymentConfig below)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssh-tunnel-config-idev-fsd-extnoc-prometheus
+  namespace: wwp-test
+data:
+  config: |
+    Host idev-fsd-extnoc
+      Hostname 86.119.40.21
+      User camptocamp-prom-tunnel
+      LocalForward 9090 127.0.0.1:9090
+      ExitOnForwardFailure yes
+
+---
+# The three dashes mean we now move on to another YAML object
+
+# This DeploymentConfig describes a simple service that uses the above
+# ConfigMap as the ~/.ssh/config, as well as a Kubernetes Secret named
+# ssh-tunnel-keys-idev-fsd-extnoc-prometheus for the keys (not represented
+# in this file for obvious reasons of secrecy)
+
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: ssh-tunnel-idev-fsd-extnoc-prometheus
+  labels:
+    app: ssh-tunnel-idev-fsd-extnoc-prometheus
+  namespace: wwp-test
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: ssh-tunnel-idev-fsd-extnoc-prometheus
+    deploymentconfig: ssh-tunnel-idev-fsd-extnoc-prometheus
+  template:
+    metadata:
+      labels:
+        app: ssh-tunnel-idev-fsd-extnoc-prometheus
+        deploymentconfig: ssh-tunnel-idev-fsd-extnoc-prometheus
+    spec:
+      containers:
+      - name: ssh-tunnel-idev-fsd-extnoc-prometheus
+        image: ubuntu
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9090
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /-/ready
+              port: 9090
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /root/ssh/keys
+          name: keys
+        - mountPath: /root/ssh
+          name: config
+        command:
+        - "bash"
+        - "-c"
+        - |
+          set -x
+          apt -qy update
+          apt -qy install openssh-client
+          # Permissions schmermissions:
+          mkdir -p 0700 /root/.ssh
+          cp /root/ssh/keys/{id_rsa,known_hosts} /root/.ssh/
+          chmod 0600 /root/.ssh/id_rsa
+          cp /root/ssh/config /root/.ssh/
+          ssh -v -N idev-fsd-extnoc
+
+      # The TL;DR of
+      # https://docs.openshift.com/container-platform/3.11/install_config/persistent_storage/pod_security_context.html
+      # is: if you don't do this you don't get root
+      serviceAccount: wwp-test
+      serviceAccountName: wwp-test
+
+      # We mount the bits and pieces of config and keys as volumes:
+      volumes:
+      - name: keys
+        secret:
+          secretName: ssh-tunnel-keys-idev-fsd-extnoc-prometheus
+      - name: config
+        configMap:
+          name: ssh-tunnel-config-idev-fsd-extnoc-prometheus
